@@ -1,4 +1,5 @@
 import whisper #para transcribir
+import yt_dlp
 import streamlit as st
 import os #para habla con el SO
 import warnings #para silenciar las advetencias de whisper
@@ -9,6 +10,32 @@ from datetime import datetime #para guardar fecha y hora exacta
 
 warnings.filterwarnings("ignore") #si van a molestar que sea solo con advetencias rojas
 
+def descargar_audio_internet(url):
+    print("Descarga:")
+    # Configuración para que descargue SOLO audio y lo convierta a MP3
+    # Usamos un nombre fijo 'audio_descargado' para no llenar el disco de nombres raros    
+
+    nombre_archivo = "audio_descargadp"
+
+    opciones = {
+        'format': 'bestaudio/best', # La mejor calidad de audio disponible
+        'outtmpl': nombre_archivo,  # Nombre del archivo de salida (sin extensión aún)
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+        'quiet': True, # Para que no llene la consola de basura
+    }
+
+    try:
+        with yt_dlp.YoutubeDL(opciones) as ydl:
+            ydl.download([url])
+            return f"{nombre_archivo}.mp3"
+    except Exception as e:
+        print(f"Error descargando:{e}")
+        return None
+    
 
 def transcribir_audio(ruta_archivo):
     
@@ -154,6 +181,46 @@ def obtener_historial():
     datos = cursor.fetchall()
     conexion.close()
     return datos
+
+def responder_pregunta(pregunta, contexto):
+    """
+    Envía la transcripción (contexto) y la pregunta del usuario a la IA.
+    """
+    cliente = Groq(api_key=st.secrets["GROQ_API_KEY"])
+
+    prompt_sistema = f"""
+    Eres un asistente inteligente. Tienes acceso a la siguiente transcripción de un audio/video:
+    
+    --- INICIO TRANSCRIPCIÓN ---
+    {contexto}
+    --- FIN TRANSCRIPCIÓN ---
+    
+    Tu tarea es responder la pregunta del usuario BASÁNDOTE ÚNICAMENTE en la transcripción anterior.
+    Si la respuesta no está en el texto, di "No se menciona en el audio".
+    Sé directo y conciso.
+    """
+
+    chat_completion = cliente.chat.completions.create(
+        messages=[
+            {
+                "role": "system",
+                "content": prompt_sistema,
+            },
+            {
+                "role": "user",
+                "content": pregunta, 
+            }
+        ],
+        model = "llama-3.3-70b-versatile",
+        temperature = 0.5, 
+    )
+
+    return chat_completion.choices[0].message.content
+
+
+
+
+
 
 
 if __name__ == "__main__":

@@ -1,0 +1,23 @@
+# Ignorar la carpeta de librerías (¡Esto es lo que pesa 700MB!)
+venv/
+.venv/
+
+# Ignorar base de datos y secretos
+transcripciones.db
+.streamlit/secrets.toml
+
+# Ignorar git
+.git/
+
+# Ignorar archivos basura de Python
+__pycache__/
+*.pyc
+
+# Ignorar archivos multimedia descargados
+*.mp3
+*.wav
+*.mp4
+*.webm
+
+# Ignorar reportes
+*.pdf
