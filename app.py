@@ -7,6 +7,9 @@ from generador_pdf import generar_pdf # Asegúrate de que este nombre coincida c
 st.set_page_config(page_title="Transcriptor Pro IA", page_icon="🤖", layout="wide")
 
 def main():
+    inicializar_db()
+
+
     # --- 1. MEMORIA DE SESIÓN (La Mochila) ---
     # Si no existe la variable 'transcripcion_actual' en la memoria, la creamos vacía.
     if 'transcripcion_actual' not in st.session_state:
@@ -18,7 +21,11 @@ def main():
 
     # --- BARRA LATERAL ---
     st.sidebar.title("🗄️ Historial")
-    lista_trabajos = obtener_historial()
+    try:
+        lista_trabajos = obtener_historial()
+    except Exception as e:
+        st.sidebar.warning("No hay historial disponible aún.")
+        lista_trabajos = []
     
     for trabajo in lista_trabajos:
         id_trabajo, fecha, nombre, contenido, analisis = trabajo
@@ -35,8 +42,6 @@ def main():
     # --- PANTALLA PRINCIPAL ---
     st.title("🤖 Transcriptor Pro: IA + Internet")
     st.write("Obtén resúmenes de audios, conferencias o videos de internet.")
-    
-    inicializar_db()
 
     # Pestañas para elegir la fuente
     tab_upload, tab_link = st.tabs(["📂 Subir Archivo", "🌍 Desde URL (YouTube/Web)"])
