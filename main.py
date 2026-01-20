@@ -11,21 +11,28 @@ from datetime import datetime #para guardar fecha y hora exacta
 warnings.filterwarnings("ignore") #si van a molestar que sea solo con advetencias rojas
 
 def descargar_audio_internet(url):
-    print("Descarga:")
-    # Configuración para que descargue SOLO audio y lo convierta a MP3
-    # Usamos un nombre fijo 'audio_descargado' para no llenar el disco de nombres raros    
-
-    nombre_archivo = "audio_descargadp"
-
+    print(f"🌍 Intentando descargar: {url}")
+    nombre_archivo = "audio_descargado"
+    
     opciones = {
-        'format': 'bestaudio/best', # La mejor calidad de audio disponible
-        'outtmpl': nombre_archivo,  # Nombre del archivo de salida (sin extensión aún)
+        'format': 'bestaudio/best',
+        'outtmpl': nombre_archivo,
+        # --- TRUCOS ANTI-BLOQUEO ---
+        'quiet': False, # Ponemos False para ver más info si falla
+        'nocheckcertificate': True,
+        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        # Forzar clientes que suelen fallar menos en servidores
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android', 'web']
+            }
+        },
+        # --- PROCESAMIENTO ---
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
-        'quiet': True, # Para que no llene la consola de basura
     }
 
     try:
@@ -33,7 +40,7 @@ def descargar_audio_internet(url):
             ydl.download([url])
             return f"{nombre_archivo}.mp3"
     except Exception as e:
-        print(f"Error descargando:{e}")
+        print(f"❌ Error descargando: {e}")
         return None
     
 
